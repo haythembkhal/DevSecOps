@@ -63,74 +63,27 @@ The pipeline in [`Jenkinsfile`](Jenkinsfile) performs:
 - `NEXUS_URL` (e.g., `http://localhost:8081`), `NEXUS_REPO_PATH` (e.g., `repository/raw-releases`), `NEXUS_USER`, `NEXUS_PASSWORD`
 - `STAGING_URL` (e.g., `https://staging.example.com`)
 
----
+
 
 ## 3) SonarQube (SAST)
 - Start SonarQube locally: `docker compose up -d sonarqube`
 - Log in at `http://localhost:9000` (admin/admin), create a token
 - Configure Jenkins environment: `SONAR_HOST_URL=http://localhost:9000` and `SONAR_TOKEN` to the generated token
 
----
+
 
 ## 4) Dependency Scanning (SCA)
 - **OWASP Dependency-Check** is configured in `pom.xml` and produces `target/dependency-check-report.html` and `.xml`.
 
----
+
 
 ## 5) DAST with OWASP ZAP
 - Set `STAGING_URL` in Jenkins to the staging base URL; the pipeline will run the **ZAP Baseline** Docker scan and publish `zap-report.html` and `zap-report.xml`.
 
----
+
 
 ## 6) Observability
 - Prometheus metrics are exposed at `/actuator/prometheus`.
 - Prometheus is pre-configured in `prometheus/prometheus.yml` to scrape the app.
 - Grafana is provisioned with a Prometheus datasource.
 
----
-
-## 7) Project structure
-
-```
-.
-├── Jenkinsfile
-├── Dockerfile
-├── README.md
-├── pom.xml
-├── docker-compose.yml
-├── prometheus/
-│   └── prometheus.yml
-├── grafana/
-│   └── provisioning/
-│       └── datasources/
-│           └── datasource.yml
-├── src/
-│   ├── main/
-│   │   ├── java/com/haytem/devsecops/
-│   │   │   ├── Application.java
-│   │   │   └── HelloController.java
-│   │   └── resources/
-│   │       └── application.properties
-│   └── test/
-│       └── java/com/haytem/devsecops/
-│           └── HelloControllerTest.java
-└── .gitignore
-```
-
----
-
-## 8) Local build & tests (without Jenkins)
-```bash
-docker run --rm -v "$PWD":/wrk -w /wrk maven:3.9.9-eclipse-temurin-17 mvn -B clean verify
-```
-
-Run Dependency-Check locally:
-```bash
-docker run --rm -v "$PWD":/usr/src --entrypoint mvn maven:3.9.9-eclipse-temurin-17 -B org.owasp:dependency-check-maven:check
-```
-
----
-
-## 9) Notes
-- Default ports: app `8080`, SonarQube `9000`, Nexus `8081`, Prometheus `9090`, Grafana `3000`
-- The repository contains **no secrets**. CI uses environment variables when available.
